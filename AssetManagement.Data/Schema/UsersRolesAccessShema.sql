@@ -1,0 +1,83 @@
+IF(OBJECT_ID('[FK_Users_RoleId]') IS NOT NULL)
+BEGIN
+	ALTER TABLE [Users] DROP CONSTRAINT [FK_Users_RoleId]
+END
+GO
+
+If(OBJECT_ID('[FK_RoleAccess_RoleId]') Is Not Null)
+BEGIN
+	ALTER TABLE [RoleAccess] DROP CONSTRAINT [FK_RoleAccess_RoleId]
+END
+GO
+
+If(OBJECT_ID('[FK_RoleAccess_ActionId]') Is Not Null)
+BEGIN
+	ALTER TABLE [RoleAccess] DROP CONSTRAINT [FK_RoleAccess_ActionId]
+END
+GO
+
+IF EXISTS (SELECT * FROM sys.tables where name = N'Roles')
+BEGIN
+	DROP TABLE [Roles]
+END
+GO
+
+IF EXISTS (SELECT * FROM sys.tables where name = N'Users')
+BEGIN
+	DROP TABLE [Users]
+END
+GO
+
+IF EXISTS (SELECT * FROM sys.tables where name = N'Actions')
+BEGIN
+	DROP TABLE [Actions]
+END
+GO
+
+IF EXISTS (SELECT * FROM sys.tables where name = N'RoleAccess')
+BEGIN
+	DROP TABLE [RoleAccess]
+END
+GO
+
+CREATE TABLE [Roles] (
+	RoleId INT CONSTRAINT [PK_RoleId] PRIMARY KEY IDENTITY(1, 1) NOT NULL,
+	RoleName VARCHAR(100) NOT NULL,
+	RoleCode VARCHAR(10) NOT NULL,
+	RoleLevel INT NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	CreatedBy VARCHAR(30) NOT NULL,
+	ModifiedDate DATETIME NULL,
+	ModifiedBy VARCHAR(30) NULL,
+	IsDeleted BIT DEFAULT 0)
+
+CREATE TABLE [Users] (
+	UserId INT CONSTRAINT [PK_UserId] PRIMARY KEY IDENTITY(1, 1) NOT NULL,
+	Password VARCHAR(500) NOT NULL,
+	RoleId INT NOT NULL CONSTRAINT [FK_Users_RoleId] FOREIGN KEY REFERENCES Roles(RoleId),
+	EmailId VARCHAR(500) NOT NULL,
+	FirstName VARCHAR(100) NOT NULL,
+	LastName VARCHAR(100) NOT NULL,
+	UserCode VARCHAR(10) NOT NULL,
+	City VARCHAR(30) NOT NULL,
+	State VARCHAR(30) NOT NULL,
+	IsActive BIT DEFAULT 1,
+	CreatedDate DATETIME NOT NULL,
+	CreatedBy VARCHAR(30) NOT NULL,
+	ModifiedDate DATETIME NULL,
+	ModifiedBy VARCHAR(30) NULL,
+	IsDeleted BIT DEFAULT 0)
+
+CREATE TABLE [Actions] (
+	ActionId INT CONSTRAINT [PK_Actions] PRIMARY KEY IDENTITY(1, 1) NOT NULL,
+	ActionName VARCHAR(100) NOT NULL,
+	ActionType VARCHAR(100) NOT NULL,
+	CreatedDate DATETIME NOT NULL,
+	CreatedBy VARCHAR(30) NOT NULL,
+	ModifiedDate DATETIME NULL,
+	ModifiedBy VARCHAR(30) NULL,
+	IsDeleted BIT DEFAULT 0)
+
+CREATE TABLE [RoleAccess] (
+	RoleId INT NOT NULL CONSTRAINT [FK_RoleAccess_RoleId] FOREIGN KEY REFERENCES Roles(RoleId),
+	ActionId INT NOT NULL CONSTRAINT [FK_RoleAccess_ActionId] FOREIGN KEY REFERENCES Actions(ActionId))

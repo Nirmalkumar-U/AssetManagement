@@ -1,0 +1,68 @@
+<h1>addeditbranch</h1>
+<form [formGroup]="branchForm" class="row g-3">
+  <div class="col-md-4">
+    <label class="form-label">Branch Name</label>
+    <input type="text" formControlName="branchName" class="form-control" id="branchName">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Branch Code</label>
+    <input type="text" formControlName="branchCode" class="form-control" id="branchCode">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">City</label>
+    <input type="text" formControlName="city" class="form-control" id="city">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label">State</label>
+    <input type="text" formControlName="state" class="form-control" id="state">
+  </div>
+
+  <div class="col-1">
+    <button type="button" (click)="saveBranch()" class="btn btn-primary">Save</button>
+  </div>
+  <div class="col-4">
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" (change)="onOnlineChange(!isOnline)" [checked]="isOnline">
+      <label class="form-check-label" for="flexSwitchCheckDefault">Online</label>
+    </div>
+  </div>
+  <div class="col-1">
+    <button type="button" class="btn btn-primary" [disabled]="isDisableSync">Sync</button>
+  </div>
+</form>
+<!--<div>
+  <button (click)="addData()">Add Data</button>
+  <button (click)="updateData()">Update Data</button>
+  <button (click)="clearAll()">Clear</button>
+</div>-->
+
+<table class="table table-bordered" *ngIf="!isOnline">
+  <thead>
+    <tr>
+      <th>Branch Name</th>
+      <th>Branch Code</th>
+      <th>City</th>
+      <th>State</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody *ngIf="branchList?.length==0">
+    <tr>
+      <td colspan="5">No Record Found</td>
+    </tr>
+  </tbody>
+  <tbody *ngIf="branchList && branchList.length!=0">
+    <tr *ngFor="let item of branchList">
+      <td>{{ item.branchName }}</td>
+      <td>{{ item.branchCode }}</td>
+      <td>{{ item.city }}</td>
+      <td>{{ item.state }}</td>
+      <td>
+        <button class="btn btn-danger" (click)="deleteData(item.BranchId)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
