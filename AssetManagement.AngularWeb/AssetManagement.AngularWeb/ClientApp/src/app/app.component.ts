@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LocalStoreService } from './core/services/local-store.service';
+import { EmitService } from './core/services/emit.service';
 
 @Component({
   selector: 'app-root',
@@ -7,6 +7,10 @@ import { LocalStoreService } from './core/services/local-store.service';
 })
 export class AppComponent {
   title = 'app';
-  constructor(LocalStoreService : LocalStoreService) {
+  isLoading: boolean = false;
+  constructor(private emitService: EmitService) {
+    this.emitService.loaderEmitter.subscribe(loader => {
+      this.isLoading = loader;
+    });
   }
 }

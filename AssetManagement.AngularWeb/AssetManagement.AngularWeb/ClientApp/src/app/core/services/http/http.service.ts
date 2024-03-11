@@ -3,6 +3,7 @@ import { methods } from 'src/app/constants/constants';
 import { AppSettingsDto } from '../../dtos/app-settings-dto';
 import { LocalStoreService } from '../local-store.service';
 import { Observable, Observer } from 'rxjs';
+import { EmitService } from '../emit.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { Observable, Observer } from 'rxjs';
 export class HttpService {
 
   baseUrl = AppSettingsDto.baseUrl;
-  constructor(private localStoreService: LocalStoreService) { }
+  constructor(private localStoreService: LocalStoreService,private emitService: EmitService) { }
   requestObj = (method: string = 'GET', headerType: string = 'DEFAULT', body?: any) =>  {
     return {
      method,
@@ -30,6 +31,7 @@ export class HttpService {
   executeRequest(url:string, requestObj: any):Observable<any> {
     return new Observable((observer: Observer<any>) => {
       let request = this.getFetchObject(requestObj);
+      this.emitService.loaderEmitter.emit(true);
       console.log(this.baseUrl + url);
       fetch(this.baseUrl + url, request)
         .then((response:any) => {
@@ -39,6 +41,7 @@ export class HttpService {
           if(!result.status){
             //alart
           }
+          this.emitService.loaderEmitter.emit(false);
           observer.next(result);
           observer.complete();
         })
