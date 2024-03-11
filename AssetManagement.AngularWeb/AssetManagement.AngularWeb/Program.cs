@@ -1,8 +1,29 @@
+using AssetManagement.AngularWeb.Controllers;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var env = builder.Environment.EnvironmentName;
+var basePath = Directory.GetCurrentDirectory();
 
+builder.Configuration.AddJsonFile(
+    path: Path.Combine(basePath, $"appsettings.{env}.json"),
+    optional: false,
+    reloadOnChange: true
+);
+
+// Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Correct the configuration section targeting
+var appSettings = builder.Configuration.GetSection("AppSettings"); // This should target the root
+builder.Services.Configure<AppSettings>(appSettings);
+
 
 var app = builder.Build();
 
@@ -17,11 +38,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 
-app.MapFallbackToFile("index.html"); ;
+app.MapFallbackToFile("index.html");
 
 app.Run();

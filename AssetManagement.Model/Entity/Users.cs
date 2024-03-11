@@ -12,5 +12,6 @@
         public string City { get; set; }
         public string State { get; set; }
         public bool IsActive { get; set; }
+        public Roles Roles { get; set; }
     }
 }

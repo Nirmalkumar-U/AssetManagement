@@ -7,6 +7,7 @@ export class Paths {
 
 export class AppRoutes {
   static login = "login";
+  static home = "home";
   static branchList = "branchList";
   static addBranch = "addEditBranch";
   static editBranch = "addEditBranch/:id";

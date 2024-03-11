@@ -88,12 +88,12 @@ namespace AssetManagement.Repository
                 {
                     Subject = new ClaimsIdentity(new Claim[]
                     {
-                            new Claim(AppClaimTypes.UserId, claims.Find(x=>x.Key==AppClaimTypes.UserId)?.Value),
-                            new Claim(AppClaimTypes.FirstName, claims.Find(x=>x.Key==AppClaimTypes.FirstName)?.Value),
-                            new Claim(AppClaimTypes.LastName, claims.Find(x=>x.Key==AppClaimTypes.LastName)?.Value),
-                            new Claim(AppClaimTypes.EmailId, claims.Find(x=>x.Key==AppClaimTypes.EmailId)?.Value),
-                            new Claim(AppClaimTypes.RoleId, claims.Find(x=>x.Key==AppClaimTypes.RoleId)?.Value),
-                            new Claim(AppClaimTypes.Actions, claims.Find(x=>x.Key==AppClaimTypes.Actions)?.Value)
+                            new(AppClaimTypes.UserId, claims.Find(x=>x.Key==AppClaimTypes.UserId)?.Value),
+                            new(AppClaimTypes.FirstName, claims.Find(x=>x.Key==AppClaimTypes.FirstName)?.Value),
+                            new(AppClaimTypes.LastName, claims.Find(x=>x.Key==AppClaimTypes.LastName)?.Value),
+                            new(AppClaimTypes.EmailId, claims.Find(x=>x.Key==AppClaimTypes.EmailId)?.Value),
+                            new(AppClaimTypes.RoleId, claims.Find(x=>x.Key==AppClaimTypes.RoleId)?.Value),
+                            new(AppClaimTypes.Actions, claims.Find(x=>x.Key==AppClaimTypes.Actions)?.Value)
                     }),
 
                     Expires = expiresIn,
@@ -119,6 +119,49 @@ namespace AssetManagement.Repository
                 throw;
             }
         }
+
+        public async Task<BaseResponseDto<TokenDto>> RefreshToken(string token)
+        {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                try
+                {
+                    tokenHandler.ValidateToken(token, new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "itismekumaru",
+                        ValidateAudience = true,
+                        ValidAudience = "itisaudience",
+                        ValidateLifetime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("NMyISuRpeMrSAecLreHtKAeyR12I3!NI"))
+                    }, out SecurityToken validatedToken);
+
+                    var jwtToken = (JwtSecurityToken)validatedToken;
+                    var userId = int.Parse(jwtToken.Claims.First(x => x.Type == AppClaimTypes.UserId).Value);
+                    var user = await amContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+                    if (user != null)
+                    {
+                        return await CreateToken(new UserDto
+                        {
+                            UserId = user.UserId,
+                            FirstName = user.FirstName,
+                            LastName = user.LastName,
+                            Email = user.EmailId,
+                            RoleId = user.RoleId
+                        });
+                    }
+                    else
+                    {
+                        return new BaseResponseDto<TokenDto> { Status = false, Message = new List<string>{"User Not Found"} };
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(ex);
+                    throw;
+                }
+        }
+
         public async Task<BaseResponseDto<List<UserListDto>>> GetUserList(int userId)
         {
             try

@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { EmitService } from '../core/services/emit.service';
+import { LocalStoreService } from '../core/services/local-store.service';
 
 @Component({
   selector: 'app-nav-menu',
@@ -7,6 +10,14 @@ import { Component } from '@angular/core';
 })
 export class NavMenuComponent {
   isExpanded = false;
+  isLoggedIn = false;
+
+  constructor(private router: Router, private emitService:EmitService,private localStoreService:LocalStoreService) {
+    this.isLoggedIn = this.localStoreService.getItem('accessToken') ? true : false;
+    this.emitService.loginEmitter.subscribe(login => {
+      this.isLoggedIn = login;
+    });
+  }
 
   collapse() {
     this.isExpanded = false;
