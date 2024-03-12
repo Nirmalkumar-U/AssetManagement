@@ -20,8 +20,7 @@ builder.Configuration.AddJsonFile(
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// Correct the configuration section targeting
-var appSettings = builder.Configuration.GetSection("AppSettings"); // This should target the root
+var appSettings = builder.Configuration.GetSection("AppSettings");
 builder.Services.Configure<AppSettings>(appSettings);
 
 

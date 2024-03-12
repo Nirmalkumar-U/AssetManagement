@@ -1,3 +1,4 @@
+using AssetManagement.Model;
 using AssetManagement.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,7 +6,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 dependencyInjectionService();
+var env = builder.Environment.EnvironmentName;
+var basePath = Directory.GetCurrentDirectory();
 
+builder.Configuration.AddJsonFile(
+    path: Path.Combine(basePath, $"appsettings.{env}.json"),
+    optional: false,
+    reloadOnChange: true
+);
+var appSettings = builder.Configuration.GetSection("AppSettings");
+builder.Services.Configure<AppSettingsDto>(appSettings);
 // Transient Custom DI Resolve
 builder.Services.AddTransient(typeof(IEntityRepository<>), typeof(EntityRepository<>));
 builder.Services.AddHttpContextAccessor();

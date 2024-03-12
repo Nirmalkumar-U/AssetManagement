@@ -20,20 +20,22 @@ export class HttpService {
    }
   }
 
-  get(url: string):Observable<any> {
-    return this.executeRequest(url, this.requestObj(methods.GET,methods.GET));
+  get(url: string,isLoading:boolean = true):Observable<any> {
+    return this.executeRequest(url, this.requestObj(methods.GET,methods.GET),isLoading);
   }
 
-  post(url: string, body: any):Observable<any> {
-    return this.executeRequest(url, this.requestObj(methods.POST, methods.POST, JSON.stringify(body)));
+  post(url: string, body: any,isLoading:boolean = true):Observable<any> {
+    return this.executeRequest(url, this.requestObj(methods.POST, methods.POST, JSON.stringify(body)),isLoading);
   }
 
-  executeRequest(url:string, requestObj: any):Observable<any> {
+  executeRequest(url:string, requestObj: any,isLoading:boolean):Observable<any> {
     return new Observable((observer: Observer<any>) => {
-      let request = this.getFetchObject(requestObj);
-      this.emitService.loaderEmitter.emit(true);
+      let requestInit = this.getFetchObject(requestObj);
+      if(isLoading){
+        this.emitService.loaderEmitter.emit(true);
+      }
       console.log(this.baseUrl + url);
-      fetch(this.baseUrl + url, request)
+      fetch(this.baseUrl + url, requestInit)
         .then((response:any) => {
           return this.handelResponse(response);
         })
@@ -41,7 +43,9 @@ export class HttpService {
           if(!result.status){
             //alart
           }
-          this.emitService.loaderEmitter.emit(false);
+          if(isLoading){
+            this.emitService.loaderEmitter.emit(false);
+          }
           observer.next(result);
           observer.complete();
         })
