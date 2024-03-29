@@ -1,67 +1,153 @@
-using AssetManagement.Model;
 using AssetManagement.Repository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-dependencyInjectionService();
-var env = builder.Environment.EnvironmentName;
-var basePath = Directory.GetCurrentDirectory();
-
-builder.Configuration.AddJsonFile(
-    path: Path.Combine(basePath, $"appsettings.{env}.json"),
-    optional: false,
-    reloadOnChange: true
-);
-var appSettings = builder.Configuration.GetSection("AppSettings");
-builder.Services.Configure<AppSettingsDto>(appSettings);
-// Transient Custom DI Resolve
-builder.Services.AddTransient(typeof(IEntityRepository<>), typeof(EntityRepository<>));
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddDbContext<AMContext>(option =>
+namespace AssetManagement.Api
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("AssetManagementConnection"));
-});
+    public static class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
-{
-    builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
-}));
+            var configuration = builder.Configuration.GetConfiguration();
 
-var app = builder.Build();
+            var startup = new Startup(configuration);
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+            startup.ConfigureServices(builder.Services);
 
-app.UseCors("corsapp");
+            var app = builder.Build();
+            var httpContextAccessor = app.Services.GetService<IHttpContextAccessor>();
+            var hostApplicationLifetime = app.Services.GetService<IHostApplicationLifetime>();
 
-app.UseHttpsRedirection();
+            startup.Configure(app, app.Environment, hostApplicationLifetime, httpContextAccessor);
 
-//app.UseAuthorization();
+            app.Run();
+        }
 
-app.MapControllers();
+        private static IConfiguration GetConfiguration(this ConfigurationManager configurationManager)
+        {
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var basePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-app.Run();
+            var builder = configurationManager
+                .SetBasePath(basePath)
+                .AddJsonFile($"appsettings.{env}.json", optional: false, reloadOnChange: true);
 
 
-void dependencyInjectionService()
-{
-    builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-    builder.Services.AddScoped<IBranchRepository, BranchRepository>();
-    builder.Services.AddScoped<IAssetRepository, AssetRepository>();
-    builder.Services.AddScoped<ICommonRepository, CommonRepository>();
-    builder.Services.AddScoped<ICommonSharedRepository, CommonSharedRepository>();
-    builder.Services.AddScoped<IEncriptDecriptRepository, EncriptDecriptRepository>();
-    builder.Services.AddScoped<IUserRepository, UserRepository>();
-    builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+            builder.AddEnvironmentVariables();
+
+            return builder.Build();
+        }
+    }
+
+    public class Startup
+    {
+        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            DependencyInjectionService(services);
+
+            services.AddHttpContextAccessor();
+            services.AddControllers();
+
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
+
+            services.AddDbContext<AMContext>(option =>
+            {
+                option.UseSqlServer(Configuration.GetConnectionString("AssetManagementConnection"));
+            });
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddCors(p => p.AddPolicy("corsapp", builder =>
+            {
+                builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+            }));
+
+            // Add services to the container.
+            services.AddControllers(options =>
+            {
+                options.AllowEmptyInputInBodyModelBinding = true;
+            });
+
+            services.Configure<GzipCompressionProviderOptions>(options =>
+            {
+                options.Level = CompressionLevel.Optimal;
+            });
+
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<GzipCompressionProvider>();
+            });
+
+            // Configure JWT authentication
+            var securityKey = "NMyISuRpeMrSAecLreHtKAeyR12I3!NI";
+            var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(securityKey));
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "itismekumaru",
+                        ValidateAudience = true,
+                        ValidAudience = "itisaudience",
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = mySecurityKey,
+                        ValidateLifetime = true
+                    };
+                });
+        }
+
+        public void Configure(WebApplication app, IWebHostEnvironment env, IHostApplicationLifetime hostApplicationLifetime, IHttpContextAccessor httpContextAccessor)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseCors("corsapp");
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+            ApplicationAppContext.Configure(httpContextAccessor, Configuration);
+        }
+
+        private static void DependencyInjectionService(IServiceCollection services)
+        {
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IBranchRepository, BranchRepository>();
+            services.AddScoped<IAssetRepository, AssetRepository>();
+            services.AddScoped<ICommonRepository, CommonRepository>();
+            services.AddScoped<ICommonSharedRepository, CommonSharedRepository>();
+            services.AddScoped<IEncriptDecriptRepository, EncriptDecriptRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+        }
+    }
 }

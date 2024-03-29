@@ -14,7 +14,9 @@ namespace AssetManagement.Repository
         {
             if (httpContextAccessor.HttpContext.User.Claims.Any())
             {
-                // will do
+                this.UserId = Convert.ToInt32(httpContextAccessor.HttpContext.User?.Claims?.FirstOrDefault(claim => claim.Type == AppClaimTypes.UserId)?.Value);
+                this.RoleId = Convert.ToInt32(httpContextAccessor.HttpContext.User?.Claims?.FirstOrDefault(claim => claim.Type == AppClaimTypes.RoleId)?.Value);
+                this.UserEmail = httpContextAccessor.HttpContext.User?.Claims?.FirstOrDefault(claim => claim.Type == AppClaimTypes.EmailId)?.Value;
             }
         }
         public DbSet<Asset> Asset { get; set; }

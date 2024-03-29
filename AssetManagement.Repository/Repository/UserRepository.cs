@@ -1,4 +1,5 @@
 ﻿using AssetManagement.Model;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -71,6 +72,7 @@ namespace AssetManagement.Repository
                 var expiresInSeconds = 900;
                 var expiresIn = DateTime.Now.AddSeconds(expiresInSeconds);
 
+                var tokenHandler = new JwtSecurityTokenHandler();
                 var actions = await amContext.RoleAccess.Where(x => x.RoleId == user.RoleId).Select(z => z.ActionId).ToListAsync();
                 var act = string.Join(",", actions);
 
@@ -81,7 +83,8 @@ namespace AssetManagement.Repository
                         new ClaimDto { Key = AppClaimTypes.LastName, Value = user.LastName },
                         new ClaimDto { Key = AppClaimTypes.EmailId, Value = user.Email },
                         new ClaimDto { Key = AppClaimTypes.RoleId, Value = user.RoleId.ToString()},
-                        new ClaimDto { Key = AppClaimTypes.Actions, Value = act}
+                        new ClaimDto { Key = AppClaimTypes.Actions, Value = act},
+                        new ClaimDto {Key= "ApiKey", Value="13N103K6-7H44-3280-HAR1-734B44W45R67"},
                     };
 
                 var tokenDescriptor = new SecurityTokenDescriptor
@@ -95,13 +98,13 @@ namespace AssetManagement.Repository
                             new(AppClaimTypes.RoleId, claims.Find(x=>x.Key==AppClaimTypes.RoleId)?.Value),
                             new(AppClaimTypes.Actions, claims.Find(x=>x.Key==AppClaimTypes.Actions)?.Value)
                     }),
-
-                    Expires = expiresIn,
+                    IssuedAt = DateTime.Now,
                     Issuer = issuer,
                     Audience = audience,
                     SigningCredentials = new SigningCredentials(mySecurityKey, SecurityAlgorithms.HmacSha256)
                 };
-                var tokenHandler = new JwtSecurityTokenHandler();
+
+                tokenDescriptor.Expires = tokenDescriptor.IssuedAt?.AddSeconds(expiresInSeconds);
                 var token = tokenHandler.CreateToken(tokenDescriptor);
 
                 response.Result = new()
@@ -122,44 +125,44 @@ namespace AssetManagement.Repository
 
         public async Task<BaseResponseDto<TokenDto>> RefreshToken(string token)
         {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                try
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
-                    tokenHandler.ValidateToken(token, new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = "itismekumaru",
-                        ValidateAudience = true,
-                        ValidAudience = "itisaudience",
-                        ValidateLifetime = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("NMyISuRpeMrSAecLreHtKAeyR12I3!NI"))
-                    }, out SecurityToken validatedToken);
+                    ValidateIssuer = true,
+                    ValidIssuer = "itismekumaru",
+                    ValidateAudience = true,
+                    ValidAudience = "itisaudience",
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("NMyISuRpeMrSAecLreHtKAeyR12I3!NI"))
+                }, out SecurityToken validatedToken);
 
-                    var jwtToken = (JwtSecurityToken)validatedToken;
-                    var userId = int.Parse(jwtToken.Claims.First(x => x.Type == AppClaimTypes.UserId).Value);
-                    var user = await amContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
-                    if (user != null)
-                    {
-                        return await CreateToken(new UserDto
-                        {
-                            UserId = user.UserId,
-                            FirstName = user.FirstName,
-                            LastName = user.LastName,
-                            Email = user.EmailId,
-                            RoleId = user.RoleId
-                        });
-                    }
-                    else
-                    {
-                        return new BaseResponseDto<TokenDto> { Status = false, Message = new List<string>{"User Not Found"} };
-                    }
-
-                }
-                catch (Exception ex)
+                var jwtToken = (JwtSecurityToken)validatedToken;
+                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == AppClaimTypes.UserId).Value);
+                var user = await amContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+                if (user != null)
                 {
-                    System.Diagnostics.Debug.WriteLine(ex);
-                    throw;
+                    return await CreateToken(new UserDto
+                    {
+                        UserId = user.UserId,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Email = user.EmailId,
+                        RoleId = user.RoleId
+                    });
                 }
+                else
+                {
+                    return new BaseResponseDto<TokenDto> { Status = false, Message = new List<string> { "User Not Found" } };
+                }
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                throw;
+            }
         }
 
         public async Task<BaseResponseDto<List<UserListDto>>> GetUserList(int userId)

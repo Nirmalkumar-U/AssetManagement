@@ -51,6 +51,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpGet]
+        [ApiKeyAuthorization]
         public async Task<IActionResult> GetBranchList()
         {
             try
