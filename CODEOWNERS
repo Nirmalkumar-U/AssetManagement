@@ -5,6 +5,6 @@
 
 # Assigning code owners for specific file types
 # Syntax: *.file_extension    <username(s) or team(s)>
-backend/*.cs       @Nirmalkumar-U
-frontend/**/*.ts   @Nirmalkumar-U
-database/*.sql     @Nirmalkumar-U
+*.cs       @Nirmalkumar-U
+**/*.ts   @Nirmalkumar-U
+*.sql     @Nirmalkumar-U
