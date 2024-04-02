@@ -1,10 +1,2 @@
-# This is a sample CODEOWNERS file for a project with Angular, .NET Core, and SQL
-
-# Root directory owners
-*           @Nirmalkumar-U
-
-# Assigning code owners for specific file types
-# Syntax: *.file_extension    <username(s) or team(s)>
-*.cs       @Nirmalkumar-U
-**/*.ts   @Nirmalkumar-U
-*.sql     @Nirmalkumar-U
+# Default code owner for files in this repo
+* @Nirmalkumar-U
