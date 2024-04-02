@@ -5,5 +5,7 @@ import { Component } from '@angular/core';
   templateUrl: './branchList.component.html',
 })
 export class BranchListComponent {
-  
+  constructor(){
+    // to do
+  }
 }
