@@ -7,6 +7,5 @@ import { Component } from '@angular/core';
 export class BranchListComponent {
   constructor(){
     // to do
-    //check
   }
 }
