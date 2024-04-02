@@ -1,7 +1,7 @@
 # This is a sample CODEOWNERS file for a project with Angular, .NET Core, and SQL
 
 # Root directory owners
-/           @Nirmalkumar-U
+*           @Nirmalkumar-U
 
 # Assigning code owners for specific file types
 # Syntax: *.file_extension    <username(s) or team(s)>
