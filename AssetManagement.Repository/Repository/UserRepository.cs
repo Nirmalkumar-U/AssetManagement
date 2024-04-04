@@ -83,8 +83,7 @@ namespace AssetManagement.Repository
                         new ClaimDto { Key = AppClaimTypes.LastName, Value = user.LastName },
                         new ClaimDto { Key = AppClaimTypes.EmailId, Value = user.Email },
                         new ClaimDto { Key = AppClaimTypes.RoleId, Value = user.RoleId.ToString()},
-                        new ClaimDto { Key = AppClaimTypes.Actions, Value = act},
-                        new ClaimDto {Key= "ApiKey", Value="13N103K6-7H44-3280-HAR1-734B44W45R67"},
+                        new ClaimDto { Key = AppClaimTypes.Actions, Value = act}
                     };
 
                 var tokenDescriptor = new SecurityTokenDescriptor

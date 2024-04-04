@@ -1,3 +1,4 @@
+using AssetManagement.Model;
 using AssetManagement.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -40,7 +41,6 @@ namespace AssetManagement.Api
                 .SetBasePath(basePath)
                 .AddJsonFile($"appsettings.{env}.json", optional: false, reloadOnChange: true);
 
-
             builder.AddEnvironmentVariables();
 
             return builder.Build();
@@ -71,12 +71,21 @@ namespace AssetManagement.Api
                 option.UseSqlServer(Configuration.GetConnectionString("AssetManagementConnection"));
             });
 
+            services.AddCors(opt =>
+            {
+                opt.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins(Configuration["AppSettings:AllowedOrigin"])
+                       .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddCors(p => p.AddPolicy("corsapp", builder =>
-            {
-                builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
-            }));
+            var appSettings = Configuration.GetSection("AppSettings");
+
+            services.Configure<AppSettingsDto>(appSettings);
 
             // Add services to the container.
             services.AddControllers(options =>
@@ -122,7 +131,7 @@ namespace AssetManagement.Api
                 app.UseSwaggerUI();
             }
 
-            app.UseCors("corsapp");
+            app.UseCors(options => options.WithOrigins(Configuration["AppSettings:AllowedOrigin"]).AllowAnyHeader().AllowAnyMethod());
 
             app.UseHttpsRedirection();
 

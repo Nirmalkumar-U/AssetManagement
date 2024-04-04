@@ -14,7 +14,7 @@ public static class ApplicationAppContext
     public static string Environment => System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
     public static string GetConfigValue(string key)
     {
-        return _configuration.GetValue<string>(key);
+        return _configuration["AppSettings:" + key];
     }
 }
 }
