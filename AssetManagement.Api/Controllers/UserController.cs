@@ -44,6 +44,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpGet]
+        [ApiKeyAuthorization]
         public async Task<IActionResult> Login(string email, string password)
         {
             try
@@ -58,6 +59,7 @@ namespace AssetManagement.Api.Controllers
         }
 
         [HttpPost]
+        [ApiKeyAuthorization]
         public async Task<IActionResult> CreateToken(UserDto user)
         {
             try

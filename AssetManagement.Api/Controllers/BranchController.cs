@@ -16,6 +16,7 @@ namespace AssetManagement.Api.Controllers
         }
 
         [HttpPost]
+        [TokenAuthorization]
         public async Task<IActionResult> SaveBranch(SaveBranchDto model)
         {
             try
@@ -29,6 +30,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpPost]
+        [TokenAuthorization]
         public async Task<IActionResult> SyncBranch(List<SaveBranchDto> model)
         {
             try
@@ -51,7 +53,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpGet]
-        [ApiKeyAuthorization]
+        [TokenAuthorization]
         public async Task<IActionResult> GetBranchList()
         {
             try
@@ -65,6 +67,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpGet]
+        [TokenAuthorization]
         public async Task<IActionResult> GetBranchByBranchId(int branchId)
         {
             try
@@ -78,6 +81,7 @@ namespace AssetManagement.Api.Controllers
             }
         }
         [HttpGet]
+        [TokenAuthorization]
         public async Task<IActionResult> GetBranchDropDown()
         {
             try
