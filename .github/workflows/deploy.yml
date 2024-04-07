@@ -24,8 +24,17 @@ jobs:
       - name: Build with dotnet
         run: |
           dotnet build AssetManagement.Web/AssetManagement.Web.csproj --configuration Release
-          dotnet publish AssetManagement.Web/AssetManagement.Web.csproj --configuration Release --no-build -o publish
-          mv publish/index.html publish/index.htm
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.6.6'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React app
+        run: npm run build
 
   build-api:
     runs-on: ubuntu-latest
