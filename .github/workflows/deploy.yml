@@ -22,7 +22,10 @@ jobs:
           dotnet-version: '6.0'
 
       - name: Build with dotnet
-        run: dotnet build AssetManagement.Web/AssetManagement.Web.csproj --configuration Release
+        run: |
+          dotnet build AssetManagement.Web/AssetManagement.Web.csproj --configuration Release
+          dotnet publish AssetManagement.Web/AssetManagement.Web.csproj --configuration Release --no-build -o publish
+          mv publish/index.html publish/index.htm
 
   build-api:
     runs-on: ubuntu-latest
