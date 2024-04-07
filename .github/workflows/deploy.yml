@@ -16,13 +16,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v2
 
-      - name: Set up .NET Core
+      - name: Set up .NET Core SDK
         uses: actions/setup-dotnet@v1.2
         with:
-          dotnet-version: 6.0
+          dotnet-version: '6.0'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build AssetManagement.Web/AssetManagement.Web.csproj --configuration Release
 
       - name: Publish to Azure Web App
         uses: azure/webapps-deploy@v2.2
@@ -40,17 +40,16 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v2
 
-      - name: Set up .NET Core
+      - name: Set up .NET Core SDK
         uses: actions/setup-dotnet@v1.2
         with:
-          dotnet-version: 6.0
+          dotnet-version: '6.0'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build AssetManagement.Api/AssetManagement.Api.csproj --configuration Release
 
       - name: Publish to Azure Web App
         uses: azure/webapps-deploy@v2.2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
