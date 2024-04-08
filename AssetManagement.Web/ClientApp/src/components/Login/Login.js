@@ -36,7 +36,7 @@ const Login = () => {
     };
 
     const validateLogin = () => {
-
+        console.log("test");
         setValidateData({
             validateEmailId: CommonFunction.validateField(userData.emailId, "string"),
             validatePassword: CommonFunction.validateField(userData.password, "string"),
